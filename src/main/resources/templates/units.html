@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Category</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="notification.js"></script>
+    <object th:include="resources :: head" th:remove="tag"></object>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+
+</head>
+<body>
+
+
+<header>
+    <object th:include="toolBar :: menu" th:remove="tag"></object>
+</header>
+
+
+<div id="error"></div>
+
+<main class="container p-5">
+
+    <form action="/unitsAdd" method="POST" id="addUnit">
+
+        <div class="form-group">
+            <input class="form-control" name="descr" id="descr" placeholder="Unit Name"  type="text" />
+        </div>
+        <button class="btn btn-primary" type="submit" id="submit">Add</button>
+    </form>
+
+    <br>
+    <table class="table table-striped" style="width:100%">
+        <tr>
+            <th>Unit Name</th>
+            <th colspan="2">Action</th>
+        </tr>
+        <tr th:each="unit : ${unitsList}">
+            <form action="/editUnit" method="POST" id="editUnit">
+                <td>
+                    <input class="form-control" name="descrDtl" id="descrDtl" type="text"
+                           th:value="${unit.describe}"/>
+                </td>
+                <td>
+                    <input class="form-control" name="idVal" id="idVal" type="text" style="display: none"
+                           th:value="${unit.id}"/>
+
+                    <button class="btn btn-primary" type="submit">Edit</button>
+                </td>
+            </form>
+            <form action="/delUnit" method="POST" id="delUnit">
+                <td>
+                    <input class="form-control" name="idValDelete" id="idValDelete" type="text" style="display: none"
+                           th:value="${unit.id}"/>
+
+                    <button class="btn btn-primary" type="submit" id="delete">Delete</button>
+                </td>
+            </form>
+
+        </tr>
+    </table>
+
+</main>
+
+
+<script type="text/javascript">
+       $("form#addUnit").submit(function(e) {
+              var error = "";
+              if ($("#descr").val() == "") {
+                  error += "The Unit field is required.<br>"
+              }
+              let parameters = { id :-1 , describe: $("#descr").val()};
+                if ($("#descr").val() != ""){
+                    $.getJSON({ url: "/getUnit", type: 'GET', async: false}, parameters , function(data) {
+                    if (data.describe != "No Unit"){
+                        error += " This Unit "+$("#descr").val()+" is already Exists";}
+                    }) ;
+              }
+              if (error != "") {
+                    $("#error").html('<div class="alert alert-danger" role="alert"><p><strong>There were error(s) in your form:</strong></p>' + error + '</div>');
+                }
+                if (error != ""){
+                    return false;
+                }
+                 else
+                    {
+                    return true;
+                    }
+          })
+
+           $("form#editUnit").submit(function(e) {
+              var error = "";
+              if ($("#descrDtl").val() == "") {
+                  error += "you can't change Unit Name to empty<br>"
+              }
+
+            let parameters = { id : $("#idVal").val() , describe: $("#descrDtl").val()};
+                if ($("#descrDtl").val() != ""){
+                    $.getJSON({ url: "/testUnitDescribe", type: 'GET', async: false}, parameters , function(data) {
+                    if (data.describe == "this describe already exist"){
+                        error += " This Unit Name  "+$("#descrDtl").val()+" is already Exists";}
+                    }) ;
+              }
+
+              if (error != "") {
+                    $("#error").html('<div class="alert alert-danger" role="alert"><p><strong>There were error(s) in your form:</strong></p>' + error + '</div>');
+                }
+              if (error != ""){
+                    return false;
+                }
+                 else{
+                    return true;
+              }
+          })
+
+
+
+       $("form#delUnit").submit(function(e) {
+            var error = "";
+
+            var r = confirm("Are you sure want to delete this Unit!");
+            if (r == true){
+                 return true;
+            }
+            else {
+                    return false;
+            }
+
+
+          })
+
+
+    </script>
+
+</body>
+</html>

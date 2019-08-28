@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Category</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="notification.js"></script>
+
+    <object th:include="resources :: head" th:remove="tag"></object>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+          integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+
+</head>
+<body>
+
+
+<header>
+    <object th:include="toolBar :: menu" th:remove="tag"></object>
+</header>
+
+
+<div id="error"></div>
+
+<main class="container p-5">
+
+    <form action="/classes" method="POST" id="addClass">
+
+        <div class="form-group">
+            <input class="form-control" name="descr" id="descr" placeholder="class Name" type="text"/>
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="reorderpoint" id="reorderpoint" placeholder="minimum" type="number"/>
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="submit">Add</button>
+    </form>
+
+    <br>
+    <table class="table table-striped" style="width:100%">
+        <tr>
+            <th>Class Name</th>
+            <th>Reorder Point</th>
+            <th colspan="2">Action</th>
+
+        </tr>
+        <tr th:each="classes : ${classesAll}">
+            <form action="/editClasses" method="POST" id="editClass">
+                <td>
+                    <input class="form-control" name="descrDtl" id="descrDtl" type="text"
+                           th:value="${classes.describe}"/>
+                </td>
+                <td>
+                    <input class="form-control" name="reOrderPointDtl" id="reOrderPointDtl" type="text"
+                           th:value="${classes.reOrderPoint}"/>
+
+                </td>
+                <td>
+                    <input class="form-control" name="idVal" id="idVal" type="text" style="display: none"
+                           th:value="${classes.id}"/>
+
+                    <button class="btn btn-primary" type="submit">Edit</button>
+                </td>
+
+            </form>
+            <form action="/delClasses" method="POST" id="delClass">
+                <td>
+                    <input class="form-control" name="idValDelete" id="idValDelete" type="text" style="display: none"
+                           th:value="${classes.id}"/>
+
+                    <button class="btn btn-primary" type="submit" id="delete">Delete</button>
+                </td>
+            </form>
+        </tr>
+    </table>
+
+</main>
+
+
+<script type="text/javascript">
+
+showNotification();
+
+       $("form#addClass").submit(function(e) {
+              var error = "";
+              if ($("#descr").val() == "") {
+                  error += "The Class  field is required.<br>"
+              }
+              let parameters = { id :-1 , describe: $("#descr").val(),reOrderPoint:0};
+                if ($("#descr").val() != ""){
+                    $.getJSON({ url: "/getClasses", type: 'GET', async: false}, parameters , function(data) {
+                    if (data.describe != "No Class"){
+                        error += " This Class Name  "+$("#descr").val()+" is already Exists";}
+                    }) ;
+              }
+              if (error != "") {
+                    $("#error").html('<div class="alert alert-danger" role="alert"><p><strong>There were error(s) in your form:</strong></p>' + error + '</div>');
+                }
+                if (error != ""){
+                    return false;
+                }
+                 else
+                    {
+                    return true;
+                    }
+          })
+
+       $("form#editClass").submit(function(e) {
+              var error = "";
+              if ($("#descrDtl").val() == "") {
+                  error += "you can't change class Name to empty<br>"
+              }
+
+            let parameters = { id : $("#idVal").val() , describe: $("#descrDtl").val(),reOrderPoint:0};
+                if ($("#descrDtl").val() != ""){
+                    $.getJSON({ url: "/testClassesDescribe", type: 'GET', async: false}, parameters , function(data) {
+                    if (data.describe == "this describe already exist"){
+                        error += " This Class Name  "+$("#descrDtl").val()+" is already Exists";}
+                    }) ;
+              }
+
+              if (error != "") {
+                    $("#error").html('<div class="alert alert-danger" role="alert"><p><strong>There were error(s) in your form:</strong></p>' + error + '</div>');
+                }
+              if (error != ""){
+                    return false;
+                }
+                 else{
+                    return true;
+              }
+          })
+
+
+
+       $("form#delClass").submit(function(e) {
+            var error = "";
+
+            var r = confirm("Are you sure want to delete this Class!");
+            if (r==true){
+                 return true;
+            }
+            else {
+                    return false;
+            }
+
+
+          })
+
+
+
+
+</script>
+
+</body>
+</html>

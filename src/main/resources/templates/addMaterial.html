@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Material</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="notification.js"></script>
+
+    <object th:include="resources :: head" th:remove="tag"></object>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+          integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+    <style>
+.pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+.pagination a.active {
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 5px;
+}
+
+.pagination a:hover:not(.active) {
+  background-color: #ddd;
+  border-radius: 5px;
+}
+
+
+
+
+
+
+
+
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+<header>
+    <object th:include="toolBar :: menu" th:remove="tag"></object>
+</header>
+
+
+<div id="error"></div>
+<table>
+    <tr>
+        <td>
+            <div class="pagination" th:if="${currentGroup}!='5'">
+                <a th:href="@{'/materialPageLastPage/'+${pageNo}+'/'+${lastGroup}}" target="_self">&laquo;</a>
+                <a th:href="@{'/materialPage/'+${pageNo}+'/0'}" th:class="${addValue}==0 ? active : '' " target="_self">1</a>
+                <a th:href="@{'/materialPage/'+${pageNo}+'/2'}" th:class="${addValue}==2 ? active : '' " target="_self">2</a>
+                <a th:href="@{'/materialPage/'+${pageNo}+'/4'}" th:class="${addValue}==4 ? active : '' " target="_self">3</a>
+                <a th:href="@{'/materialPage/'+${pageNo}+'/6'}" th:class="${addValue}==6 ? active : '' " target="_self">4</a>
+                <a th:href="@{'/materialPage/'+${pageNo}+'/8'}" th:class="${addValue}==8 ? active : '' " target="_self">5</a>
+
+                <a th:href="@{'/materialPageNextPage/'+${pageNo}+'/'+${nextGroup}}" target="_self">&raquo;</a>
+            </div>
+            <input class="form-control" name="pageNo" id="pageNo"
+                   placeholder="pageNo"
+                   th:value="${pageNo}"
+                   hidden="true"
+                   type="text"/>
+
+        </td>
+        <td>
+
+            <div class="search-container">
+                <input class="form-control" name="search" id="search" placeholder="search" type="text"
+                       onkeydown="enterToTabDiff(event,this.value);"/>
+            </div>
+
+
+        </td>
+    </tr>
+</table>
+
+
+<main class="container-fluid" style="margin-left: 10px;margin-right:10px;width=100%;">
+
+    <br>
+    <table class="table table-striped" style="width:100%;">
+        <form action="/addMaterial" method="POST" id="addMaterial">
+
+            <tr>
+                <td>Barcode</td>
+                <td>Material Name</td>
+                <td>Classes Name</td>
+                <td>Category Name</td>
+                <td>code</td>
+                <td>Unit</td>
+                <td>Purchasing price</td>
+                <td>Profit margin</td>
+
+                <td>Selling price</td>
+                <td>Minimum Value</td>
+                <td colspan="2">Action</td>
+            </tr>
+
+            <tr>
+                <td><input class="form-control" name="barcode" id="barcode" placeholder="Barcode" type="text"
+                           onkeydown="enterToTab(event);"/></td>
+
+                <td><input class="form-control" name="descr" id="descr" placeholder="Material Name" type="text"/></td>
+                <td>
+                    <select class="custom-select" id="classes" name="classes">
+                        <option th:each="class : ${classesAll}" th:value="${class.id}"
+                                th:text="${class.describe}"></option>
+                    </select>
+                </td>
+                <td>
+                    <select class="custom-select" id="category" name="category">
+                        <option th:each="category : ${categories}" th:value="${category.id}"
+                                th:text="${category.describe}"></option>
+                    </select>
+                </td>
+                <td><input class="form-control" name="code" id="code" placeholder="code" type="number" min="0"/></td>
+
+                <td>
+                    <select class="custom-select" id="unit" name="unit">
+                        <option th:each="unit : ${units}"
+                                th:value="${unit.id}"
+                                th:text="${unit.describe}"></option>
+                    </select>
+                </td>
+
+
+                <td><input class="form-control" name="buy" id="buy" placeholder="Purchasing price"
+                           onblur="getPrice(this.value)" type="text"/></td>
+
+                <td><input class="form-control" name="profit_margin" id="profit_margin" onblur="getPrice(this.value)"
+                           placeholder="profit Margin" type="text"/></td>
+
+
+                <td><input class="form-control" name="sell" id="sell" placeholder="Selling Price" type="text" min="0"/>
+                </td>
+
+
+                <td>
+                    <input class="form-control" name="minimum" id="minimum" placeholder="Minimum" type="number"
+                           min="0"/>
+                </td>
+
+
+                <td colspan="2">
+                    <button class="btn btn-primary" type="submit" id="submit">Add</button>
+                </td>
+
+            </tr>
+            <tr>
+                <td align="right">Notes</td>
+                <td colspan="9"><input class="form-control" name="notes" id="notes" placeholder="Notes" type="text"/>
+                </td>
+            </tr>
+
+
+        </form>
+        <!--
+        <table class="table table-striped" style="width:100%">
+        -->
+        <tr th:each="material : ${materialAll}">
+            <td colspan="10">
+
+                <form action="/editMaterial" method="POST" id="editMaterial">
+
+                    <table class="table table-striped" style="width:100%;">
+                        <tr>
+                            <td><input class="form-control" name="barcodeDtl" id="barcodeDtl" placeholder="Barcode"
+                                       type="text" th:value="${material.barcode}"/></td>
+
+                            <td>
+                                <input class="form-control" name="descrDtl" id="descrDtl" type="text"
+                                       th:value="${material.describe}"/>
+                            </td>
+                            <td>
+                                <select class="custom-select" id="classDtl" name="classDtl">
+                                    <option th:each="class : ${classesAll}" th:value="${class.id}"
+                                            th:text="${class.describe}"
+                                            th:selected="(${class.id} == *{material.classId})"></option>
+                                </select>
+                            </td>
+                            <td>
+
+                                <select class="custom-select" id="categoryDtl" name="categoryDtl">
+                                    <option th:each="category : ${categories}" th:value="${category.id}"
+                                            th:text="${category.describe}"
+                                            th:selected="(${category.id} == *{material.categoryId})"
+                                    ></option>
+                                </select>
+
+                            </td>
+
+                            <td><input class="form-control" name="codeDtl" id="codeDtl" placeholder="code" type="text"
+                                       th:value="${material.code}"/></td>
+
+                            <td>
+                                <select class="custom-select" id="unitDtl" name="unitDtl">
+                                    <option th:each="unit : ${units}"
+                                            th:value="${unit.id}"
+                                            th:text="${unit.describe}"
+                                            th:selected="(${unit.id} == *{material.unit})"
+                                    ></option>
+                                </select>
+                            </td>
+
+                            <td><input class="form-control" name="buyDtl" id="buyDtl" type="text"
+                                       th:value="${material.buyPrice}"/>
+                            </td>
+
+                            <td><input class="form-control" name="profitMarginDtl" id="profitMarginDtl" type="number"
+                                       min="0"
+                                       th:value="${material.profitMargin}"/></td>
+
+                            <td><input class="form-control" name="sellDtl" id="sellDtl" type="text" min="0"
+                                       th:value="${material.sellPrice}"/></td>
+
+                            <td><input class="form-control" name="minimumDtl" id="minimumDtl" placeholder="Minimum"
+                                       type="number" th:value="${material.minimum}"/></td>
+
+
+                        </tr>
+                        <tr>
+                            <td align="right">Notes</td>
+                            <td colspan="8"><input class="form-control" name="note"
+                                                   id="note" type="text"
+                                                   th:value="${material.notes}"/></td>
+                            <td>
+                                <input class=" form-control" name="idVal" id="idVal" type="text" hidden
+                                       th:value="${material.id}"/>
+
+                                <button class="btn btn-primary" type="submit">Edit</button>
+                            </td>
+
+                        </tr>
+                    </table>
+                </form>
+            </td>
+
+
+            <td>
+                <form action="/delMaterial" method="POST" id="delMaterial">
+
+                    <input class="form-control" name="idValDelete" id="idValDelete" type="text"
+                           style="display: none"
+                           th:value="${material.id}"/>
+
+                    <button class="btn btn-primary" type="submit" id="delete">Delete</button>
+                </form>
+            </td>
+
+        </tr>
+
+    </table>
+
+</main>
+
+
+<script type="text/javascript">
+showNotification();
+
+
+
+window.onload = function () {
+
+    document.getElementById('barcode').focus();
+}
+
+function getPrice(val) {
+
+              var buy     = document.getElementById('buy');
+              var profit = document.getElementById('profit_margin');
+              var sell =     document.getElementById('sell');
+              var x =(parseFloat(buy.value) * parseFloat(profit.value)) /100 + parseFloat(buy.value);
+              sell.value = x.toFixed(2);
+}
+
+
+       $("form#addMaterial").submit(function(e) {
+              var error = "";
+              if ($("#descr").val() == "") {
+                  error += "The Material Name  field is required.<br>"
+              }
+              let parameters = { id :-1 , describe: $("#descr").val()};
+                if ($("#descr").val() != ""){
+                    $.getJSON({ url: "/getMaterial", type: 'GET', async: false}, parameters , function(data) {
+                    if (data.describe != "No Material"){
+                        error += " This Material "+$("#descr").val()+" is already Exists";}
+                    }) ;
+              }
+
+              let parametersWithBarcode = { id :-1 , describe: $("#descr").val() , barcode : $("#barcode").val()};
+                if (($("#descr").val() != "") && ($("#barcode").val())){
+                    $.getJSON({ url: "/getBarcode", type: 'GET', async: false}, parametersWithBarcode , function(data) {
+                    if (data.describe != "No Material"){
+                        error += "</br> This Barcode "+$("#barcode").val()+" is already Exists";}
+                    }) ;
+              }
+
+
+              if (error != "") {
+                    $("#error").html('<div class="alert alert-danger" role="alert"><p><strong>There were error(s) in your form:</strong></p>' + error + '</div>');
+                }
+                if (error != ""){
+                    return false;
+                }
+                 else
+                    {
+                    return true;
+                    }
+          })
+
+           $("form#editCategory").submit(function(e) {
+              var error = "";
+              if ($("#descrDtl").val() == "") {
+                  error += "you can't change class Name to empty<br>"
+              }
+
+            let parameters = { id : $("#idVal").val() , describe: $("#descrDtl").val(),reOrderPoint:0};
+                if ($("#descrDtl").val() != ""){
+                    $.getJSON({ url: "/testClassesDescribe", type: 'GET', async: false}, parameters , function(data) {
+                    if (data.describe == "this describe already exist"){
+                        error += " This Class Name  "+$("#descrDtl").val()+" is already Exists";}
+                    }) ;
+              }
+
+              if (error != "") {
+                    $("#error").html('<div class="alert alert-danger" role="alert"><p><strong>There were error(s) in your form:</strong></p>' + error + '</div>');
+                }
+              if (error != ""){
+                    return false;
+                }
+                 else{
+                    return true;
+              }
+          })
+
+
+
+       $("form#delMaterial").submit(function(e) {
+            var error = "";
+
+            var r = confirm("Are you sure want to delete this Material !");
+            if (r == true){
+                 return true;
+            }
+            else {
+                    return false;
+            }
+
+          })
+
+
+
+
+function enterToTab(e) {
+ var intKey = window.Event ? e.which : e.KeyCode;
+
+  if(intKey == 13){
+    e.returnValue = false;
+    document.getElementById("descr").focus();
+    }
+ }
+
+
+function enterToTabDiff(e ,value) {
+ var intKey = window.Event ? e.which : e.KeyCode;
+
+  if(intKey == 13){
+        console.log(value);
+        e.returnValue = false;
+        window.location.href="materialBarcode/"+value;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Edit Sell</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="notification.js"></script>
+
+    <object th:include="resources :: head" th:remove="tag"></object>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+          integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+</head>
+<body>
+
+
+<header>
+    <object th:include="toolBar :: menu" th:remove="tag"></object>
+</header>
+
+
+<div id="error"></div>
+
+<main class="container" style="margin-left: 10px;margin-right:10px;width=100%;">
+
+    <br>
+
+    <form method="POST" id="editMoveOut" action="#" data-th-action="@{/editMoveOut}"
+          enctype="multipart/form-data">
+
+        <table class="table table-striped" style="width:100%;">
+            <tr>
+                <td>Move Date</td>
+                <td>Bill NO</td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="form-control" name="moveId" id="moveId" type="text" style="display: none"
+                           th:value="${movementData.id}"/>
+
+                    <input class="form-control" name="moveDate" id="moveDate" type="date"
+                           th:value="${movementData.moveDate}"/>
+                </td>
+
+                <td>
+                    <input class="form-control" name="billNo" id="billNo" type="text"
+                           th:value="${movementData.billNo}"/>
+                </td>
+
+            </tr>
+        </table>
+
+        <br>
+        <table class="table table-striped" style="width:100%;">
+            <tr>
+                <td>Barcode</td>
+                <td>Material Name</td>
+                <td>Quantity</td>
+                <td>Price</td>
+                <td>Total</td>
+
+            </tr>
+            <tr th:each="moveDto : ${moveDtoAll}">
+                <!--
+                <td><input type="checkbox" name="vehicle" value="Bike"></td>
+-->
+                <td><input class="form-control" th:name="'bar'+${moveDto.rowNo}" th:id="'bar'+${moveDto.rowNo}"
+                           placeholder="Barcode" type="text"
+                           th:value="${moveDto.barcode}"
+                           onblur="getName(this.value,this.id)"/>
+                    <input class="form-control"
+                           th:name="'code'+${moveDto.rowNo}"
+                           th:id="'code'+${moveDto.materialId}"
+                           type="text"
+                           hidden="true"
+                           />
+                </td>
+                <td>
+                    <input class="form-control" th:name="'name'+${moveDto.rowNo}" th:id="'name'+${moveDto.rowNo}"
+                           placeholder="Material Name" type="text"
+                           readonly="true"
+                           th:value="${moveDto.materialName}"/></td>
+
+                <td>
+                    <input class="form-control" th:name="'qua'+${moveDto.rowNo}" th:id="'qua'+${moveDto.rowNo}"
+                           placeholder="Quantity" type="number"
+                           th:value="${moveDto.quantity}"
+                           onblur="calcTotal(this.id)"/>
+                </td>
+
+                <td>
+                    <input class="form-control" th:name="'pri'+${moveDto.rowNo}" th:id="'pri'+${moveDto.rowNo}"
+                           placeholder="Price" type="text"
+                           th:value="${moveDto.price}"
+                           onblur="calcTotal(this.id)"/>
+
+                </td>
+                <td>
+                    <input class="form-control" th:name="'allPr'+${moveDto.rowNo}" th:id="'allPr'+${moveDto.rowNo}"
+                           readonly="true"
+                           th:value="${moveDto.price}"/>
+                    <input class="form-control" th:name="'currQu'+${moveDto.rowNo}" th:id="'currQu'+${moveDto.rowNo}"
+                           readonly="true" hidden="true"
+                           th:value="${moveDto.price}"/>
+
+                </td>
+                </td>
+
+
+            </tr>
+
+            <tr>
+
+                <td colspan="2">
+                    <button class="btn btn-primary" type="submit" name="action" value="edit" id="edit">Edit</button>
+                    <button class="btn btn-primary" type="submit" name="action" value="clear" id="clear">clear</button>
+                </td>
+                <td></td>
+                <td align="right">Total</td>
+                <td>
+                    <input class="form-control" name="totalPr" id="totalPr"
+                           readonly="true"
+                    /></td>
+
+                </td>
+            </tr>
+
+        </table>
+
+    </form>
+
+</main>
+
+
+<script type="text/javascript">
+showNotification();
+function getName(barcodeValue,componentId) {
+var rowNo = componentId.substring(3, 5);
+                let parameters = { id :-1 , describe: " ", barcode : barcodeValue};
+                $.getJSON({ url: "/getMaterialByBarcode", type: 'GET', async: false}, parameters , function(data) {
+                    if (data.describe != "No Material"){
+                        var x = document.getElementById('name'+rowNo);
+                        x.value= data.describe;
+                        x = document.getElementById('code'+rowNo);
+                        x.value = data.id;
+                        x = document.getElementById('currQu'+rowNo);
+                        x.value = data.quantity;
+
+                                           }
+               }) ;
+
+}
+
+function calcTotal(componentId) {
+var rowNo = componentId.substring(3, 5);
+console.log(rowNo);
+var qun = document.getElementById('qua'+rowNo).value;
+var pri = document.getElementById('pri'+rowNo).value;
+
+if ((qun.value != '') && (pri.value != '')){
+
+ var allPri = document.getElementById('allPr'+rowNo);
+    allPri.value = Math.round(qun * pri);
+
+}else{
+    allPri.value =0;
+}
+
+var i;
+var sumAll=0;
+
+for (i = 0; i < 8 ; i++) {
+    var allPrj = document.getElementById('allPr'+i);
+    console.log("here");
+      if (allPrj.value !=''){
+        sumAll = sumAll+parseInt(allPrj.value);
+        }
+}
+      totalPr.value = sumAll;
+
+
+
+
+}
+
+
+
+
+
+</script>
+
+</body>
+</html>
